@@ -33,6 +33,237 @@
     }
     #results {
       max-width: 800px;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Safe Search</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    background: #f5f5f5;
+    color: #202124;
+  }
+  header {
+    background: #ffffff;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  #searchBox {
+    width: 50%;
+    padding: 12px 16px;
+    font-size: 16px;
+    border: 1px solid #dadce0;
+    border-radius: 24px;
+    outline: none;
+    transition: box-shadow 0.2s ease;
+  }
+  #searchBox:focus {
+    box-shadow: 0 1px 6px rgba(60,64,67,.3);
+    border-color: #4285f4;
+  }
+  #results {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 20px;
+  }
+  .result {
+    background: white;
+    margin-bottom: 20px;
+    padding: 16px 20px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    transition: transform 0.1s ease;
+  }
+  .result:hover {
+    transform: translateY(-2px);
+  }
+  .result a {
+    text-decoration: none;
+    font-size: 18px;
+    font-weight: 500;
+    color: #1a73e8;
+  }
+  .result p {
+    color: #5f6368;
+    margin-top: 6px;
+  }
+  #pagination {
+    text-align: center;
+    margin: 30px 0;
+  }
+  .pageBtn {
+    display: inline-block;
+    margin: 0 5px;
+    padding: 8px 14px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .pageBtn:hover, .pageBtn.active {
+    background: #1a73e8;
+    color: white;
+  }
+  #suggestions {
+    position: absolute;
+    top: 68px;
+    width: 50%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    border: 1px solid #dadce0;
+    border-radius: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    box-shadow: 0 2px 6px rgba(60,64,67,.15);
+    display: none;
+    z-index: 200;
+  }
+  .suggestion {
+    padding: 10px 16px;
+    cursor: pointer;
+  }
+  .suggestion:hover {
+    background: #f1f3f4;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <input type="text" id="searchBox" placeholder="Search safely...">
+</header>
+
+<div id="suggestions"></div>
+<div id="results"></div>
+<div id="pagination"></div>
+
+<script>
+const searchBox = document.getElementById('searchBox');
+const resultsDiv = document.getElementById('results');
+const suggestionsDiv = document.getElementById('suggestions');
+const paginationDiv = document.getElementById('pagination');
+
+let currentQuery = '';
+let currentPage = 1;
+let resultsPerPage = 5;
+let currentResults = [];
+
+// Fetch search results using DuckDuckGo Instant Answer API
+async function fetchResults(query) {
+  try {
+    const res = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_redirect=1`);
+    const data = await res.json();
+    let results = [];
+
+    // Abstract
+    if(data.AbstractText){
+      results.push({title: data.Heading || query, text: data.AbstractText, url: data.AbstractURL});
+    }
+
+    // Related topics
+    if(data.RelatedTopics && data.RelatedTopics.length){
+      data.RelatedTopics.forEach(topic => {
+        if(topic.Text && topic.FirstURL){
+          results.push({title: topic.Text, text: "DuckDuckGo Link", url: topic.FirstURL});
+        }
+      });
+    }
+
+    return results;
+  } catch(err) {
+    console.error(err);
+    return [];
+  }
+}
+
+// Display results for current page
+function displayResults(page=1){
+  resultsDiv.innerHTML = '';
+  currentPage = page;
+  const start = (page-1)*resultsPerPage;
+  const end = start + resultsPerPage;
+  const pageResults = currentResults.slice(start, end);
+
+  if(pageResults.length === 0){
+    resultsDiv.innerHTML = '<p>No results found.</p>';
+    paginationDiv.innerHTML = '';
+    return;
+  }
+
+  pageResults.forEach(res => {
+    const div = document.createElement('div');
+    div.className = 'result';
+    div.innerHTML = `<a href="${res.url}" target="_blank">${res.title}</a><p>${res.text}</p>`;
+    resultsDiv.appendChild(div);
+  });
+
+  setupPagination();
+}
+
+// Pagination buttons
+function setupPagination(){
+  const totalPages = Math.ceil(currentResults.length / resultsPerPage);
+  paginationDiv.innerHTML = '';
+  for(let i=1;i<=totalPages;i++){
+    const btn = document.createElement('span');
+    btn.className = 'pageBtn' + (i===currentPage?' active':'');
+    btn.textContent = i;
+    btn.addEventListener('click', ()=>displayResults(i));
+    paginationDiv.appendChild(btn);
+  }
+}
+
+// Search action
+async function search(query){
+  if(!query) return;
+  currentQuery = query;
+  currentResults = await fetchResults(query);
+  displayResults(1);
+}
+
+// Suggestions (simple simulation)
+searchBox.addEventListener('input', e=>{
+  const val = e.target.value.trim();
+  if(!val){
+    suggestionsDiv.style.display = 'none';
+    return;
+  }
+  // Fake suggestions using last search (DuckDuckGo API doesn't provide live suggestions without CORS)
+  suggestionsDiv.innerHTML = '';
+  ['Safe', 'Safe search', 'DuckDuckGo', 'Privacy', 'Secure browsing'].forEach(s=>{
+    if(s.toLowerCase().includes(val.toLowerCase())){
+      const div = document.createElement('div');
+      div.className = 'suggestion';
+      div.textContent = s;
+      div.addEventListener('click', ()=>{ searchBox.value=s; suggestionsDiv.style.display='none'; search(s); });
+      suggestionsDiv.appendChild(div);
+    }
+  });
+  suggestionsDiv.style.display = suggestionsDiv.innerHTML? 'block':'none';
+});
+
+// Search on Enter
+searchBox.addEventListener('keypress', e=>{
+  if(e.key==='Enter'){
+    search(searchBox.value.trim());
+    suggestionsDiv.style.display = 'none';
+  }
+});
+</script>
+
+</body>
+</html>
       margin: 20px auto;
       padding: 0 20px;
     }
@@ -72,23 +303,6 @@
       const query = searchBox.value.trim();
       if (!query) return;
 
-      // Clear previous results
-      resultsDiv.innerHTML = '<p>Loading...</p>';
-
-      try {
-        // DuckDuckGo Instant Answer API
-        const response = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_redirect=1`);
-        const data = await response.json();
-
-        // Clear results
-        resultsDiv.innerHTML = '';
-
-        // Main Abstract Result (if exists)
-        if (data.AbstractText) {
-          const div = document.createElement('div');
-          div.className = 'result';
-          div.innerHTML = `<a href="${data.AbstractURL}" target="_blank">${data.Heading || query}</a>
-                           <p>${data.AbstractText}</p>`;
           resultsDiv.appendChild(div);
         }
 
