@@ -1,41 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>My Safe Search</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f9f9f9;
-    }
-    header {
-      background: #1a73e8;
-      color: white;
-      padding: 20px;
-      text-align: center;
-    }
-    #searchBox {
-      width: 50%;
-      padding: 10px;
-      font-size: 16px;
-    }
-    #searchBtn {
-      padding: 10px 20px;
-      font-size: 16px;
-      margin-left: 5px;
-      cursor: pointer;
-      background: #fff;
-      color: #1a73e8;
-      border: none;
-      border-radius: 4px;
-    }
-    #results {
-      max-width: 800px;
-<!DOCTYPE html>
-<html lang="en">
-<head>
 <meta charset="UTF-8">
 <title>Safe Search</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
@@ -262,78 +227,5 @@ searchBox.addEventListener('keypress', e=>{
 });
 </script>
 
-</body>
-</html>
-      margin: 20px auto;
-      padding: 0 20px;
-    }
-    .result {
-      background: white;
-      padding: 15px;
-      margin-bottom: 10px;
-      border-radius: 5px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-    .result a {
-      text-decoration: none;
-      color: #1a0dab;
-      font-size: 18px;
-    }
-    .result p {
-      color: #545454;
-      margin-top: 5px;
-    }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>My Safe Search</h1>
-    <input type="text" id="searchBox" placeholder="Type your search...">
-    <button id="searchBtn">Search</button>
-  </header>
-
-  <div id="results"></div>
-
-  <script>
-    const searchBox = document.getElementById('searchBox');
-    const searchBtn = document.getElementById('searchBtn');
-    const resultsDiv = document.getElementById('results');
-
-    async function search() {
-      const query = searchBox.value.trim();
-      if (!query) return;
-
-          resultsDiv.appendChild(div);
-        }
-
-        // Related Topics (like search results)
-        if (data.RelatedTopics && data.RelatedTopics.length) {
-          data.RelatedTopics.forEach(topic => {
-            if (topic.Text && topic.FirstURL) {
-              const div = document.createElement('div');
-              div.className = 'result';
-              div.innerHTML = `<a href="${topic.FirstURL}" target="_blank">${topic.Text}</a>
-                               <p>DuckDuckGo Link</p>`;
-              resultsDiv.appendChild(div);
-            }
-          });
-        }
-
-        // No results found
-        if (resultsDiv.innerHTML === '') {
-          resultsDiv.innerHTML = '<p>No results found.</p>';
-        }
-
-      } catch (err) {
-        resultsDiv.innerHTML = '<p>Error fetching results. Try again later.</p>';
-        console.error(err);
-      }
-    }
-
-    searchBtn.addEventListener('click', search);
-    searchBox.addEventListener('keypress', e => {
-      if (e.key === 'Enter') search();
-    });
-  </script>
 </body>
 </html>
